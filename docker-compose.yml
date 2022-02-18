@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  app:
+    container_name: bookstore-app
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    working_dir: /var/www/html
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - bookstore_networks
+  nginx:
+    container_name: bookstore-nginx
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    links:
+      - php-fpm
+      - mongo
+    networks:
+      - bookstore_networks
+  php-fpm:
+    container_name: bookstore-php74
+    image: php:7.4-fpm
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      - bookstore_networks
+  mongo:
+    container_name: bookstore-mongo
+    image: mongo
+    restart: always
+    ports:
+      - 27018:27017
+    volumes:
+      - ./data:/data/db
+    networks:
+      - bookstore_networks
+
+networks:
+  bookstore_networks:
+    name: bookstore_networks
